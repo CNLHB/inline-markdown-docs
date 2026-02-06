@@ -8,7 +8,7 @@ type AuthState = {
   signIn: (
     email: string,
     password: string,
-  ) => Promise<{ error?: string; code?: string }>
+  ) => Promise<{ error?: string; code?: string; requiresEmailConfirmation?: boolean }>
   signUp: (
     email: string,
     password: string,
@@ -51,7 +51,7 @@ export const useAuth = (): AuthState => {
   const signIn = useCallback(async (email: string, password: string) => {
     if (!supabase) return { error: 'Supabase not configured.' }
     const { error } = await supabase.auth.signInWithPassword({ email, password })
-    return { error: error?.message, code: error?.code }
+    return { error: error?.message, code: error?.code, requiresEmailConfirmation: undefined }
   }, [])
 
   const signUp = useCallback(async (email: string, password: string) => {

@@ -44,29 +44,29 @@ const dbPromise = openDB<MarkdownDb>("inkline-db", 1, {
 
 const getAll = async <T>(storeName: keyof MarkdownDb) => {
   const db = await dbPromise;
-  return db.getAll(storeName) as Promise<T[]>;
+  return db.getAll(storeName as any) as Promise<T[]>;
 };
 
 const put = async <T>(storeName: keyof MarkdownDb, value: T) => {
   const db = await dbPromise;
-  return db.put(storeName, value);
+  return db.put(storeName as any, value as any);
 };
 
 const bulkPut = async <T>(storeName: keyof MarkdownDb, values: T[]) => {
   const db = await dbPromise;
-  const tx = db.transaction(storeName, "readwrite");
-  await Promise.all(values.map((value) => tx.store.put(value)));
+  const tx = db.transaction(storeName as any, "readwrite");
+  await Promise.all(values.map((value) => tx.store.put(value as any)));
   await tx.done;
 };
 
 const remove = async (storeName: keyof MarkdownDb, key: string) => {
   const db = await dbPromise;
-  return db.delete(storeName, key);
+  return db.delete(storeName as any, key);
 };
 
 const clear = async (storeName: keyof MarkdownDb) => {
   const db = await dbPromise;
-  return db.clear(storeName);
+  return db.clear(storeName as any);
 };
 
 const getShareByToken = async (token: string) => {

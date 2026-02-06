@@ -1,4 +1,5 @@
 import MarkdownIt from 'markdown-it'
+// @ts-ignore - turndown types not available
 import TurndownService from 'turndown'
 
 const markdown = new MarkdownIt({

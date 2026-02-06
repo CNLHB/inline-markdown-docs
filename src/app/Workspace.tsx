@@ -63,7 +63,6 @@ const Workspace = ({ userId }: WorkspaceProps) => {
     addTag,
     removeTag,
     createShare,
-    deleteShare,
     syncNow,
     applyRemoteDoc,
     removeRemoteDoc,
@@ -85,6 +84,7 @@ const Workspace = ({ userId }: WorkspaceProps) => {
 
   useEffect(() => {
     if (!isSupabaseConfigured || !supabase) return undefined
+    const client = supabase
     const channel = subscribeRealtime(userId, {
       onDocUpsert: (doc) => applyRemoteDoc(doc),
       onDocDelete: (docId) => removeRemoteDoc(docId),
@@ -92,7 +92,7 @@ const Workspace = ({ userId }: WorkspaceProps) => {
       onFolderDelete: (folderId) => removeRemoteFolder(folderId),
     })
     return () => {
-      if (channel) supabase.removeChannel(channel)
+      if (channel) client.removeChannel(channel)
     }
   }, [userId, applyRemoteDoc, removeRemoteDoc, applyRemoteFolder, removeRemoteFolder])
 

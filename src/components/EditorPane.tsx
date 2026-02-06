@@ -50,7 +50,7 @@ type EditorPaneProps = {
   onTogglePreview: () => void
 }
 
-const useDebouncedCallback = <T extends (...args: unknown[]) => void>(
+const useDebouncedCallback = <T extends (...args: any[]) => any>(
   callback: T,
   delay: number,
 ) => {
@@ -86,7 +86,7 @@ const EditorPane = ({
   const [sourceValue, setSourceValue] = useState(doc?.contentMd ?? '')
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
-  const debouncedUpdate = useDebouncedCallback((markdownValue: string) => {
+  const debouncedUpdate = useDebouncedCallback((markdownValue: string): void => {
     const html = mdToHtml(markdownValue)
     onContentChange(markdownValue, html)
   }, 500)

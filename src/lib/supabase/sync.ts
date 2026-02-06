@@ -123,7 +123,7 @@ const mapVersionFromRemote = (row: RemoteVersion): DocVersion => ({
 })
 
 export const pullRemoteData = async (userId: string) => {
-  if (!supabase) return { folders: [], documents: [], shares: [] }
+  if (!supabase) return { folders: [], documents: [], shares: [], versions: [] }
 
   const [foldersRes, docsRes, sharesRes, versionsRes] = await Promise.all([
     supabase.from('folders').select('*').eq('user_id', userId),

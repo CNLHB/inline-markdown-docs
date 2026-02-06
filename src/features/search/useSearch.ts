@@ -47,7 +47,7 @@ export const useSearch = (
     if (!query.trim()) return []
     const index = buildIndex(documents)
     const fields = filters.scope === 'all' ? undefined : [filters.scope]
-    const results = index.search(query, { fields }) as SearchResult[]
+    const results = index.search(query, { fields }) as unknown as SearchResult[]
     return results.filter(filterByDate(filters.dateRange))
   }, [documents, query, filters])
 }

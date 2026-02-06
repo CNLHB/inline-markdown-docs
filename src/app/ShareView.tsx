@@ -43,7 +43,7 @@ const ShareView = () => {
           setStatus('missing')
           return
         }
-        setDoc(mapDocFromRemote(docRes.data))
+        setDoc(mapDocFromRemote(docRes.data as RemoteDocument))
         setStatus('ready')
         return
       }
