@@ -29,6 +29,7 @@ const resources = {
         uploadImage: '上传图片',
         copyLink: '复制链接',
         restore: '恢复',
+        signOut: '退出登录',
       },
       labels: {
         searchResults: '搜索结果',
@@ -72,6 +73,8 @@ const resources = {
         createShareFirst: '请先创建分享链接。',
         selectDocument: '请选择文档开始编辑。',
         uploadFailed: '上传失败：{{message}}',
+        syncShortcut: '按 Ctrl+S 同步',
+        synced: '已同步',
       },
       dialogs: {
         newFolder: '新建文件夹',
@@ -159,6 +162,7 @@ const resources = {
         uploadImage: 'Upload image',
         copyLink: 'Copy link',
         restore: 'Restore',
+        signOut: 'Sign out',
       },
       labels: {
         searchResults: 'Search results',
@@ -202,6 +206,8 @@ const resources = {
         createShareFirst: 'Create a share link first.',
         selectDocument: 'Select a document to begin.',
         uploadFailed: 'Upload failed: {{message}}',
+        syncShortcut: 'Press Ctrl+S to sync',
+        synced: 'Synced',
       },
       dialogs: {
         newFolder: 'New folder',

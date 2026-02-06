@@ -60,15 +60,6 @@ type WorkspaceState = {
 
 const nowIso = () => new Date().toISOString();
 
-const scheduleSync = (() => {
-  let timer: number | null = null;
-  return (fn: () => void) => {
-    if (!isSupabaseConfigured) return;
-    if (timer) window.clearTimeout(timer);
-    timer = window.setTimeout(fn, 1200);
-  };
-})();
-
 const ensureDefaultData = async (userId: string) => {
   const folderId = nanoid();
   const docId = nanoid();
@@ -160,12 +151,6 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
       activeDocId: payload.documents[0]?.id ?? null,
       hydrated: true,
     });
-
-    if (isSupabaseConfigured) {
-      scheduleSync(() => {
-        get().syncNow();
-      });
-    }
   },
   setActiveFolder: (folderId) => set({ activeFolderId: folderId }),
   setActiveDoc: (docId) =>
@@ -193,7 +178,6 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     };
     set((state) => ({ folders: [...state.folders, folder] }));
     await localDb.put("folders", folder);
-    scheduleSync(() => get().syncNow());
   },
   renameFolder: async (folderId, name) => {
     const now = nowIso();
@@ -204,7 +188,6 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     }));
     const folder = get().folders.find((item) => item.id === folderId);
     if (folder) await localDb.put("folders", folder);
-    scheduleSync(() => get().syncNow());
   },
   moveFolder: async (folderId, parentId) => {
     const now = nowIso();
@@ -217,7 +200,6 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     }));
     const folder = get().folders.find((item) => item.id === folderId);
     if (folder) await localDb.put("folders", folder);
-    scheduleSync(() => get().syncNow());
   },
   deleteFolder: async (folderId) => {
     const { folders, documents } = get();
@@ -241,7 +223,6 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     await localDb.remove("folders", folderId);
     await localDb.bulkPut("folders", updatedFolders);
     await localDb.bulkPut("documents", updatedDocs);
-    scheduleSync(() => get().syncNow());
   },
   createDocument: async (title, folderId) => {
     const userId = get().userId;
@@ -263,7 +244,6 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
       activeFolderId: folderId,
     }));
     await localDb.put("documents", doc);
-    scheduleSync(() => get().syncNow());
   },
   updateDocument: async (docId, patch) => {
     const now = nowIso();
@@ -274,7 +254,6 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     }));
     const doc = get().documents.find((item) => item.id === docId);
     if (doc) await localDb.put("documents", doc);
-    scheduleSync(() => get().syncNow());
   },
   deleteDocument: async (docId) => {
     const { versions, shares } = get();
@@ -302,7 +281,6 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
         .filter((share) => share.documentId === docId)
         .map((share) => localDb.remove("shares", share.id)),
     ]);
-    scheduleSync(() => get().syncNow());
   },
   saveVersion: async (docId) => {
     const doc = get().documents.find((item) => item.id === docId);
@@ -319,7 +297,6 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     };
     set((state) => ({ versions: [version, ...state.versions] }));
     await localDb.put("versions", version);
-    scheduleSync(() => get().syncNow());
   },
   restoreVersion: async (versionId) => {
     const version = get().versions.find((item) => item.id === versionId);
@@ -352,7 +329,6 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
     };
     set((state) => ({ shares: [share, ...state.shares] }));
     await localDb.put("shares", share);
-    scheduleSync(() => get().syncNow());
     return share;
   },
   deleteShare: async (shareId) => {
@@ -360,7 +336,6 @@ export const useWorkspaceStore = create<WorkspaceState>((set, get) => ({
       shares: state.shares.filter((share) => share.id !== shareId),
     }));
     await localDb.remove("shares", shareId);
-    scheduleSync(() => get().syncNow());
   },
   applyRemoteDoc: async (doc) => {
     set((state) => ({

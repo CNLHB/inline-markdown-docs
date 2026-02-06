@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSearch } from '../features/search/useSearch'
+import { useAuth } from '../features/auth/useAuth'
 import { isSupabaseConfigured, supabase } from '../lib/supabase/client'
 import { subscribeRealtime } from '../lib/supabase/realtime'
 import { downloadHtml, downloadPdf } from '../lib/export/exporters'
@@ -29,6 +30,7 @@ const getSnippet = (content: string, query: string) => {
 
 const Workspace = ({ userId }: WorkspaceProps) => {
   const { t } = useTranslation()
+  const { signOut } = useAuth()
   const {
     folders,
     documents,
@@ -69,7 +71,7 @@ const Workspace = ({ userId }: WorkspaceProps) => {
     removeRemoteFolder,
   } = useWorkspaceStore()
 
-  const [previewOpen, setPreviewOpen] = useState(true)
+  const [previewOpen, setPreviewOpen] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [shareOpen, setShareOpen] = useState(false)
   const [versionsOpen, setVersionsOpen] = useState(false)
@@ -93,6 +95,19 @@ const Workspace = ({ userId }: WorkspaceProps) => {
       if (channel) supabase.removeChannel(channel)
     }
   }, [userId, applyRemoteDoc, removeRemoteDoc, applyRemoteFolder, removeRemoteFolder])
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault()
+        if (isSupabaseConfigured) {
+          syncNow()
+        }
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [syncNow, isSupabaseConfigured])
 
   const activeDoc = documents.find((doc) => doc.id === activeDocId) ?? null
   const searchResults = useSearch(documents, searchQuery, searchFilters)
@@ -175,6 +190,7 @@ const Workspace = ({ userId }: WorkspaceProps) => {
           onTogglePreview={() => setPreviewOpen((value) => !value)}
           onToggleSidebar={() => setSidebarOpen((value) => !value)}
           onSync={syncNow}
+          onSignOut={isSupabaseConfigured ? signOut : undefined}
         />
 
         <div className="workspace-body">

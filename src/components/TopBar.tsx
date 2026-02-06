@@ -1,4 +1,4 @@
-import { Filter, RefreshCcw, PanelRight, PanelLeft } from 'lucide-react'
+import { Filter, RefreshCcw, PanelRight, PanelLeft, LogOut } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import type { SearchFilters } from '../types'
 
@@ -13,6 +13,7 @@ type TopBarProps = {
   onTogglePreview: () => void
   onToggleSidebar: () => void
   onSync: () => void
+  onSignOut?: () => void
 }
 
 const TopBar = ({
@@ -26,6 +27,7 @@ const TopBar = ({
   onTogglePreview,
   onToggleSidebar,
   onSync,
+  onSignOut,
 }: TopBarProps) => {
   const { t, i18n } = useTranslation()
   return (
@@ -82,7 +84,7 @@ const TopBar = ({
                   : t('status.synced')}
             </div>
             {syncError ? <span className="muted">{syncError}</span> : null}
-            <button className="ghost-btn" onClick={onSync}>
+            <button className="ghost-btn" onClick={onSync} title={t('messages.syncShortcut')}>
               <RefreshCcw size={14} />
               {t('actions.syncNow')}
             </button>
@@ -103,6 +105,12 @@ const TopBar = ({
           <option value="zh">中文</option>
           <option value="en">English</option>
         </select>
+        {onSignOut && (
+          <button className="ghost-btn" onClick={onSignOut}>
+            <LogOut size={14} />
+            {t('actions.signOut')}
+          </button>
+        )}
         <button
           className="icon-btn"
           onClick={onTogglePreview}
