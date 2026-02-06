@@ -1,4 +1,4 @@
-import type { Document, Folder, Share } from '../../types'
+import type { Document, DocVersion, Folder, Share } from '../../types'
 import { supabase } from './client'
 
 type RemoteDocument = {
@@ -31,6 +31,15 @@ type RemoteShare = {
   created_at: string
   expires_at: string | null
   user_id: string
+}
+
+type RemoteVersion = {
+  id: string
+  document_id: string
+  user_id: string
+  version_no: number
+  content_md: string
+  created_at: string
 }
 
 const mapDocToRemote = (doc: Document): RemoteDocument => ({
@@ -96,23 +105,42 @@ const mapShareFromRemote = (row: RemoteShare): Share => ({
   expiresAt: row.expires_at,
 })
 
+const mapVersionToRemote = (version: DocVersion, userId: string): RemoteVersion => ({
+  id: version.id,
+  document_id: version.documentId,
+  user_id: userId,
+  version_no: version.versionNo,
+  content_md: version.contentMd,
+  created_at: version.createdAt,
+})
+
+const mapVersionFromRemote = (row: RemoteVersion): DocVersion => ({
+  id: row.id,
+  documentId: row.document_id,
+  versionNo: row.version_no,
+  contentMd: row.content_md,
+  createdAt: row.created_at,
+})
+
 export const pullRemoteData = async (userId: string) => {
   if (!supabase) return { folders: [], documents: [], shares: [] }
 
-  const [foldersRes, docsRes, sharesRes] = await Promise.all([
+  const [foldersRes, docsRes, sharesRes, versionsRes] = await Promise.all([
     supabase.from('folders').select('*').eq('user_id', userId),
     supabase.from('documents').select('*').eq('user_id', userId),
     supabase.from('shares').select('*').eq('user_id', userId),
+    supabase.from('doc_versions').select('*').eq('user_id', userId),
   ])
 
-  if (foldersRes.error || docsRes.error || sharesRes.error) {
-    throw foldersRes.error ?? docsRes.error ?? sharesRes.error
+  if (foldersRes.error || docsRes.error || sharesRes.error || versionsRes.error) {
+    throw foldersRes.error ?? docsRes.error ?? sharesRes.error ?? versionsRes.error
   }
 
   return {
     folders: (foldersRes.data ?? []).map(mapFolderFromRemote),
     documents: (docsRes.data ?? []).map(mapDocFromRemote),
     shares: (sharesRes.data ?? []).map(mapShareFromRemote),
+    versions: (versionsRes.data ?? []).map(mapVersionFromRemote),
   }
 }
 
@@ -121,19 +149,23 @@ export const pushRemoteData = async (
   folders: Folder[],
   documents: Document[],
   shares: Share[],
+  versions: DocVersion[],
 ) => {
   if (!supabase) return
 
-  const [foldersRes, docsRes, sharesRes] = await Promise.all([
+  const [foldersRes, docsRes, sharesRes, versionsRes] = await Promise.all([
     supabase.from('folders').upsert(folders.map(mapFolderToRemote)),
     supabase.from('documents').upsert(documents.map(mapDocToRemote)),
     supabase
       .from('shares')
       .upsert(shares.map((share) => mapShareToRemote(share, userId))),
+    supabase
+      .from('doc_versions')
+      .upsert(versions.map((version) => mapVersionToRemote(version, userId))),
   ])
 
-  if (foldersRes.error || docsRes.error || sharesRes.error) {
-    throw foldersRes.error ?? docsRes.error ?? sharesRes.error
+  if (foldersRes.error || docsRes.error || sharesRes.error || versionsRes.error) {
+    throw foldersRes.error ?? docsRes.error ?? sharesRes.error ?? versionsRes.error
   }
 }
 
@@ -141,7 +173,8 @@ export const mergeRemote = (
   localFolders: Folder[],
   localDocs: Document[],
   localShares: Share[],
-  remote: { folders: Folder[]; documents: Document[]; shares: Share[] },
+  localVersions: DocVersion[],
+  remote: { folders: Folder[]; documents: Document[]; shares: Share[]; versions: DocVersion[] },
 ) => {
   const folderMap = new Map(localFolders.map((folder) => [folder.id, folder]))
   remote.folders.forEach((folder) => {
@@ -164,10 +197,15 @@ export const mergeRemote = (
     shareMap.set(share.id, share)
   })
 
+  const versionMap = new Map(localVersions.map((version) => [version.id, version]))
+  remote.versions.forEach((version) => {
+    versionMap.set(version.id, version)
+  })
+
   return {
     folders: Array.from(folderMap.values()),
     documents: Array.from(docMap.values()),
     shares: Array.from(shareMap.values()),
+    versions: Array.from(versionMap.values()),
   }
 }
-

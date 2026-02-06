@@ -5,14 +5,28 @@ import { isSupabaseConfigured, supabase } from '../../lib/supabase/client'
 type AuthState = {
   user: User | null
   loading: boolean
-  signIn: (email: string, password: string) => Promise<{ error?: string }>
-  signUp: (email: string, password: string) => Promise<{ error?: string }>
+  signIn: (
+    email: string,
+    password: string,
+  ) => Promise<{ error?: string; code?: string }>
+  signUp: (
+    email: string,
+    password: string,
+  ) => Promise<{ error?: string; code?: string; requiresEmailConfirmation?: boolean }>
+  resendConfirmation: (email: string) => Promise<{ error?: string }>
   signOut: () => Promise<void>
 }
 
 export const useAuth = (): AuthState => {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+
+  const resolveRedirectTo = () => {
+    const envRedirect = import.meta.env.VITE_AUTH_REDIRECT_URL
+    if (envRedirect) return envRedirect
+    if (typeof window !== 'undefined') return window.location.origin
+    return undefined
+  }
 
   useEffect(() => {
     if (!isSupabaseConfigured || !supabase) {
@@ -37,12 +51,29 @@ export const useAuth = (): AuthState => {
   const signIn = useCallback(async (email: string, password: string) => {
     if (!supabase) return { error: 'Supabase not configured.' }
     const { error } = await supabase.auth.signInWithPassword({ email, password })
-    return { error: error?.message }
+    return { error: error?.message, code: error?.code }
   }, [])
 
   const signUp = useCallback(async (email: string, password: string) => {
     if (!supabase) return { error: 'Supabase not configured.' }
-    const { error } = await supabase.auth.signUp({ email, password })
+    const emailRedirectTo = resolveRedirectTo()
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: emailRedirectTo ? { emailRedirectTo } : undefined,
+    })
+    const requiresEmailConfirmation = Boolean(data?.user && !data?.session)
+    return { error: error?.message, code: error?.code, requiresEmailConfirmation }
+  }, [])
+
+  const resendConfirmation = useCallback(async (email: string) => {
+    if (!supabase) return { error: 'Supabase not configured.' }
+    const emailRedirectTo = resolveRedirectTo()
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email,
+      options: emailRedirectTo ? { emailRedirectTo } : undefined,
+    })
     return { error: error?.message }
   }, [])
 
@@ -51,5 +82,5 @@ export const useAuth = (): AuthState => {
     await supabase.auth.signOut()
   }, [])
 
-  return { user, loading, signIn, signUp, signOut }
+  return { user, loading, signIn, signUp, resendConfirmation, signOut }
 }

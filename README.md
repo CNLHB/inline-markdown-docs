@@ -1,73 +1,44 @@
-# React + TypeScript + Vite
+# Inkline Markdown Workspace / Inkline Markdown 工作区
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+一个具备文件夹管理、WYSIWYG + 源码编辑、实时预览、标签/搜索、分享与导出，并支持 Supabase 同步的在线 Markdown 编辑器。
 
-Currently, two official plugins are available:
+An online Markdown editor with foldered document management, WYSIWYG + source modes, live preview, tagging, sharing, export, and Supabase sync.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 功能特性 / Features
+- 文件夹树层级管理，支持移动/重命名/删除
+- 文档 CRUD 与版本历史
+- WYSIWYG 编辑 + Markdown 源码模式
+- 实时预览与全文搜索
+- 标签、分享链接、HTML/PDF 导出
+- 本地 IndexedDB 存储 + Supabase 云端同步
 
-## React Compiler
+- Folder tree with nested structure, move/rename/delete
+- Document CRUD with version history
+- WYSIWYG editor + Markdown source mode
+- Live preview and full-text search
+- Tags, share links, HTML/PDF export
+- Local IndexedDB storage and Supabase sync
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+默认语言为中文，可在界面右上角切换语言 / Default language is Chinese; switch in the top-right selector.
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## 快速开始 / Quick start
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Supabase 配置 / Supabase setup
+1. 创建一个 Supabase 项目 / Create a Supabase project.
+2. 在 SQL Editor 运行 `supabase/schema.sql`.
+3. 创建名为 `assets` 的公开存储桶（或在 `src/components/EditorPane.tsx` 修改桶名）。
+4. 在项目根目录创建 `.env`:
+```bash
+VITE_SUPABASE_URL=your_project_url
+VITE_SUPABASE_ANON_KEY=your_anon_key
 ```
+
+分享页面通过 `get_shared_document` SQL 函数读取文档 / The share view calls the `get_shared_document` SQL function defined in the schema.
+
+Storage tip: set the `assets` bucket to public and allow authenticated users to upload files.
+
+环境变量未配置时将以本地模式运行 / The app will run in local-only mode if the environment variables are not set.
