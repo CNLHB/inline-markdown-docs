@@ -7,6 +7,10 @@ export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
 
 export const supabase = isSupabaseConfigured
   ? createClient(supabaseUrl, supabaseAnonKey, {
-      auth: { persistSession: true },
+      auth: {
+        persistSession: true,
+        // Use a no-op lock function to avoid Navigator Lock API errors
+        lock: (async () => ({ release: async () => {} })) as any,
+      },
     })
   : null;
